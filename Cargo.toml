@@ -2,5 +2,13 @@
 name = "crust-trust"
 version = "0.1.0"
 edition = "2021"
+authors = ["CyberforgeX <cyberforgex@gmail.com>"]
+description = "An outstanding Rust crate to manage workspaces with optimal crate handling."
+license = "MIT"
+repository = "https://github.com/cyberforgex/crust-trust"
+homepage = "https://github.com/cyberforgex/crust-trust"
+documentation = "https://docs.rs/crust-trust"
+keywords = ["workspace", "crates", "rust", "management", "automation"]
+categories = ["development-tools", "build-tools"]
 
 [dependencies]
