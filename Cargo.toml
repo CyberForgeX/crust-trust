@@ -9,6 +9,6 @@ repository = "https://github.com/cyberforgex/crust-trust"
 homepage = "https://github.com/cyberforgex/crust-trust"
 documentation = "https://docs.rs/crust-trust"
 keywords = ["workspace", "crates", "rust", "management", "automation"]
-categories = ["development-tools", "build-tools"]
+categories = ["development-tools", "productivity"]
 
 [dependencies]
