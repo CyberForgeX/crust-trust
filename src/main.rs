@@ -7,7 +7,6 @@ use std::process::Command as ProcessCommand;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-/// Main entry point to handle CLI arguments and start the workspace and crate generation process.
 fn main() -> Result<(), Error> {
     let args: Vec<String> = env::args().collect();
 
@@ -46,6 +45,9 @@ fn main() -> Result<(), Error> {
 
     run_cargo_check(workspace_path)?;
     optimize_dependencies(workspace_path)?;
+    version_management(workspace_path)?;
+    run_benchmark(workspace_path)?;
+    generate_dependency_graph(workspace_path)?;
 
     println!("Workspace '{}' created successfully!", project_name);
     Ok(())
@@ -113,14 +115,6 @@ fn add_crate_to_workspace(workspace_path: &Path, crate_name: &str) -> Result<(),
     Ok(())
 }
 
-/// Creates or overwrites a file with the specified content.
-fn create_file(path: &Path, content: &str) -> Result<(), Error> {
-    let mut writer = BufWriter::new(File::create(path)?);
-    writer.write_all(content.as_bytes())?;
-    writer.flush()?;
-    Ok(())
-}
-
 /// Runs `cargo check` to verify the workspace setup.
 fn run_cargo_check(workspace_path: &Path) -> Result<(), Error> {
     let output = ProcessCommand::new("cargo").arg("check").arg("--workspace").current_dir(workspace_path).output()?;
@@ -156,4 +150,49 @@ fn communicate_between_crates(crates_data: Arc<Mutex<HashMap<String, Vec<String>
         crate_name,
         crates_data.keys().collect::<Vec<&String>>()
     );
+}
+
+/// Automatic dependency version management.
+fn version_management(workspace_path: &Path) -> Result<(), Error> {
+    println!("Running version management...");
+    let output = ProcessCommand::new("cargo").arg("update").current_dir(workspace_path).output()?;
+    if !output.status.success() {
+        eprintln!("Version management failed: {}", String::from_utf8_lossy(&output.stderr));
+        std::process::exit(1);
+    }
+    println!("Dependency versions updated.");
+    Ok(())
+}
+
+/// Runs benchmarks on the entire workspace.
+fn run_benchmark(workspace_path: &Path) -> Result<(), Error> {
+    println!("Running `cargo bench`...");
+    let output = ProcessCommand::new("cargo").arg("bench").current_dir(workspace_path).output()?;
+    if !output.status.success() {
+        eprintln!("`cargo bench` failed: {}", String::from_utf8_lossy(&output.stderr));
+        std::process::exit(1);
+    }
+    println!("Benchmarking completed.");
+    Ok(())
+}
+
+/// Generates a dependency graph for the entire workspace.
+fn generate_dependency_graph(workspace_path: &Path) -> Result<(), Error> {
+    println!("Generating dependency graph...");
+    let output = ProcessCommand::new("cargo").arg("metadata").arg("--format-version=1").current_dir(workspace_path).output()?;
+    if !output.status.success() {
+        eprintln!("Failed to generate dependency graph: {}", String::from_utf8_lossy(&output.stderr));
+        std::process::exit(1);
+    }
+    let metadata = String::from_utf8_lossy(&output.stdout);
+    println!("Dependency Graph: {}", metadata);
+    Ok(())
+}
+
+/// Creates or overwrites a file with the specified content.
+fn create_file(path: &Path, content: &str) -> Result<(), Error> {
+    let mut writer = BufWriter::new(File::create(path)?);
+    writer.write_all(content.as_bytes())?;
+    writer.flush()?;
+    Ok(())
 }
